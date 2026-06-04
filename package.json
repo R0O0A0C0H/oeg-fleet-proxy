@@ -1,0 +1,11 @@
+{
+  "name": "oeg-fleet-proxy",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --watch index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.0.0"
+  }
+}
