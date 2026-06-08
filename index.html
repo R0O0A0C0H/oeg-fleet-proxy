@@ -1588,29 +1588,33 @@ async function loadAllOrders(month) {
       const badgeClass = approved === 'approved' ? 'badge-approved' : approved === 'rejected' ? 'badge-rejected' : 'badge-pending';
       const badgeText = approved === 'approved' ? '批准' : approved === 'rejected' ? '拒絕' : '待審核';
       const statusOpts = (settings.order_status || []).map(s => '<option ' + (d['status']===s?'selected':'') + '>' + s + '</option>').join('');
-      const escapedOrderProgress = encodeURIComponent(d['progress'] || '');
       const btns = actionBtns.map(a => '<button class="btn btn-xs ' + (a==='批准'?'btn-success':'btn-danger') + '" onclick="orderItemAction(\'' + d['vessel_code'] + '\',\'' + itemNo + '\',\'' + a + '\',' + oi + ',' + ii + ')">' + a + '</button>').join('');
-      const replyBtn = '<button class="btn btn-xs" onclick="openOrderReply(\'' + d['vessel_code'] + '\',\'' + itemNo + '\',decodeURIComponent(\'' + escapedOrderProgress + '\'))"><i class="ti ti-message-reply"></i>進度回覆</button>';
+
+      // 進度欄
       const itemProgress = d['progress'] || '';
       const ipLines = itemProgress ? itemProgress.split('\n').filter(Boolean) : [];
       const ipLatest = ipLines[ipLines.length-1] || '';
       const ipSafe = itemNo.replace(/[^a-zA-Z0-9]/g,'_');
       const ipDraft = pendingOrderProgress[itemNo];
       const ipDraftVal = ipDraft ? ipDraft.text : '';
-      let progHtml = '<td style="min-width:180px">';
+      let progHtml = '<td style="min-width:200px">';
       if (itemProgress) {
         progHtml += '<div class="prog-display">';
-        progHtml += '<div class="prog-latest" onclick="toggleProgAll(\'opall_' + ipSafe + '\')" title="點擊展開">' + ipLatest.replace(/</g,'&lt;') + '</div>';
+        progHtml += '<div class="prog-latest" onclick="toggleProgAll(\'opall_' + ipSafe + '\')" title="點擊展開全部">' + ipLatest.replace(/</g,'&lt;') + '</div>';
         if (ipLines.length > 1) progHtml += '<div class="prog-all" id="opall_' + ipSafe + '">' + itemProgress.replace(/</g,'&lt;') + '</div>';
         progHtml += '</div>';
-      } else { progHtml += '<div class="text-dimmer text-xs" style="margin-bottom:4px">尚無進度</div>'; }
+      } else {
+        progHtml += '<div class="text-dimmer text-xs" style="margin-bottom:4px">尚無進度</div>';
+      }
       progHtml += '<div class="prog-draft" id="opdraft_' + ipSafe + '">';
       if (ipDraft) progHtml += '<span class="prog-draft-badge"><span class="prog-pending-dot"></span>待送出</span>';
       progHtml += '<textarea placeholder="輸入新進度..." oninput="onOrderProgressDraft(\'' + d['vessel_code'] + '\',\'' + itemNo + '\',\'' + encodeURIComponent(itemProgress) + '\',this)">' + ipDraftVal + '</textarea>';
       progHtml += '</div></td>';
+
       html += '<tr id="orow-' + oi + '-' + ii + '">' +
         '<td style="font-family:var(--font-mono);font-size:11px;color:var(--text2)">' + seqNum + '</td>' +
-        '<td>' + (d['item_name'] || '-') + '</td><td style="font-size:11px">' + (d['part_no'] || '-') + '</td>' +
+        '<td>' + (d['item_name'] || '-') + '</td>' +
+        '<td style="font-size:11px">' + (d['part_no'] || '-') + '</td>' +
         '<td>' + (d['qty'] || '-') + ' ' + (d['unit'] || '') + '</td>' +
         '<td style="font-size:11px">' + (d['purpose'] || '-') + '</td>' +
         '<td style="font-size:11px">' + (d['expected_date'] ? String(d['expected_date']).slice(0,10) : '-') + '</td>' +
