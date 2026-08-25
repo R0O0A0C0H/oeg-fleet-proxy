@@ -8,7 +8,7 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycby9cWe_I8XGopIFL_GuMtMe
 // 只讀 action（可以快取）
 const CACHEABLE_ACTIONS = new Set([
   'getAllOrders', 'getOrders', 'getRepairs', 'getAllRepairs', 'getSettings', 'getAccounts',
-  'getStock', 'getStockLog'
+  'getStock', 'getStockLog', 'getPmsTemplates', 'getPmsPlan', 'getHoursLog', 'getMaintenanceLog'
 ])
 
 // 快取時間（秒）
@@ -19,8 +19,12 @@ const CACHE_TTL: Record<string, number> = {
   getRepairs:    60,
   getAllRepairs:  60,
   getAccounts:   120,
-  getStock:      30,  // 30秒（庫存異動頻繁）
-  getStockLog:   30,
+  getStock:        30,
+  getStockLog:     30,
+  getPmsTemplates: 300,
+  getPmsPlan:      60,
+  getHoursLog:     60,
+  getMaintenanceLog: 60,
 }
 
 app.use('*', cors({
@@ -128,6 +132,19 @@ async function clearRelatedCache(cache: Cache, action: string, body: any) {
   }
   if (action === 'saveSettings' || action === 'approveAccount' || action === 'updateAccount') {
     keysToDelete.push(`https://oeg-cache/getAccounts/all`)
+  }
+  if (['savePmsTemplate','deletePmsTemplate'].includes(action)) {
+    keysToDelete.push(`https://oeg-cache/getPmsTemplates/all`)
+  }
+  if (['savePmsPlan','deletePmsPlan','executeMaintenance','resetPmsItem'].includes(action)) {
+    if (body.vesselCode) {
+      keysToDelete.push(`https://oeg-cache/getPmsPlan/${body.vesselCode}`)
+      keysToDelete.push(`https://oeg-cache/getMaintenanceLog/${body.vesselCode}`)
+    }
+  }
+  if (action === 'updateHours' && body.vesselCode) {
+    keysToDelete.push(`https://oeg-cache/getHoursLog/${body.vesselCode}`)
+    keysToDelete.push(`https://oeg-cache/getPmsPlan/${body.vesselCode}`)
   }
   await Promise.all(keysToDelete.map(k => cache.delete(new Request(k, { method: 'GET' }))))
 }
