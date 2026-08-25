@@ -7,17 +7,20 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycby9cWe_I8XGopIFL_GuMtMe
 
 // 只讀 action（可以快取）
 const CACHEABLE_ACTIONS = new Set([
-  'getAllOrders', 'getOrders', 'getRepairs', 'getAllRepairs', 'getSettings', 'getAccounts'
+  'getAllOrders', 'getOrders', 'getRepairs', 'getAllRepairs', 'getSettings', 'getAccounts',
+  'getStock', 'getStockLog'
 ])
 
 // 快取時間（秒）
 const CACHE_TTL: Record<string, number> = {
-  getSettings:   300, // 5分鐘
-  getAllOrders:   60,  // 1分鐘
+  getSettings:   300,
+  getAllOrders:   60,
   getOrders:     60,
   getRepairs:    60,
   getAllRepairs:  60,
   getAccounts:   120,
+  getStock:      30,  // 30秒（庫存異動頻繁）
+  getStockLog:   30,
 }
 
 app.use('*', cors({
@@ -113,11 +116,14 @@ async function clearRelatedCache(cache: Cache, action: string, body: any) {
   if (body.vesselCode) {
     keysToDelete.push(`https://oeg-cache/getOrders/${body.vesselCode}`)
     keysToDelete.push(`https://oeg-cache/getRepairs/${body.vesselCode}`)
+    keysToDelete.push(`https://oeg-cache/getStock/${body.vesselCode}`)
+    keysToDelete.push(`https://oeg-cache/getStockLog/${body.vesselCode}`)
   } else {
-    // 清除所有船隻的快取
     for (const v of ['VLK','WTN','VLN','WYF']) {
       keysToDelete.push(`https://oeg-cache/getOrders/${v}`)
       keysToDelete.push(`https://oeg-cache/getRepairs/${v}`)
+      keysToDelete.push(`https://oeg-cache/getStock/${v}`)
+      keysToDelete.push(`https://oeg-cache/getStockLog/${v}`)
     }
   }
   if (action === 'saveSettings' || action === 'approveAccount' || action === 'updateAccount') {
