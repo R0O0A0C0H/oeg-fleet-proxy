@@ -72,7 +72,7 @@ app.post('/api', async (c) => {
          'saveSettings','approveAccount','updateAccount',
          'recordDelivery','confirmReceipt','cancelDelivery',
          'addStockItem','updateStockItem','deleteStockItem','batchUpdateStockItem',
-         'stockIn','stockOut'].includes(action)) {
+         'stockIn','stockOut','stockCount','deleteStockItemByCaptain'].includes(action)) {
       c.executionCtx.waitUntil(clearRelatedCache(cache, action, body))
     }
 
